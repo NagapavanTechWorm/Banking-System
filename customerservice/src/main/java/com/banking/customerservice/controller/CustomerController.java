@@ -43,6 +43,11 @@ public class CustomerController {
         return customerService.updateCustomer(id, request);
     }
 
+    @GetMapping("/health")
+    public String healthCheck() {
+        return "Customer Service is running!";
+    }
+
     @DeleteMapping("/{id}")
     public String deleteCustomer(
             @PathVariable Long id) {

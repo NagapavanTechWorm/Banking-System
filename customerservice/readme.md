@@ -190,3 +190,13 @@ docker network rm banking-network
 ```bash
 docker ps -a
 ```
+
+# CMD to Restart after the changes
+
+```bash
+mvn clean package -DshipTests
+docker build -t customer-service .
+docker rm -f customer-service-app
+docker run -d --name customer-service-app --network banking-network -p 8080:8080 customer-service
+docker logs -f customer-service-app
+```
