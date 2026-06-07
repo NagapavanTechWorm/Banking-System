@@ -194,7 +194,7 @@ docker ps -a
 # CMD to Restart after the changes
 
 ```bash
-mvn clean package -DshipTests
+mvn clean package -DskipTests
 docker build -t customer-service .
 docker rm -f customer-service-app
 docker run -d --name customer-service-app --network banking-network -p 8080:8080 customer-service
