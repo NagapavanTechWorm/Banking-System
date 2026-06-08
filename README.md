@@ -18,7 +18,7 @@ Customer Service (gRPC Server : 9090)
             │ gRPC
             ▼
      Account Service
-            │
+            │ gRPC
             ▼
    Transaction Service
 ```
