@@ -177,20 +177,20 @@ docker ps
 
 ### Service Endpoints
 
-| Service             | URL                   |
-| ------------------- | --------------------- |
-| Customer Service    | http://localhost:8080 |
-| Account Service     | http://localhost:8081 |
-| Transaction Service | http://localhost:8082 |
+| Service                 | URL                   |
+| ----------------------- | --------------------- |
+| Customer Service-app    | http://localhost:8080 |
+| Account Service-app     | http://localhost:8081 |
+| Transaction Service-app | http://localhost:8082 |
 
 ---
 
 # Viewing Logs
 
 ```bash
-docker logs -f customer-service
-docker logs -f account-service
-docker logs -f transaction-service
+docker logs -f customer-service-app
+docker logs -f account-service-app
+docker logs -f transaction-service-app
 ```
 
 ---
