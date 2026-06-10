@@ -8,10 +8,13 @@ import lombok.Data;
 import java.math.BigDecimal;
 
 @Data
-public class TransactionRequest {
+public class TransactionDespositRequest {
 
-    @NotNull(message = "Account ID is required")
-    private Long accountId;
+    @NotNull(message = "Customer ID is required")
+    private Long customerId;
+
+    @NotNull(message = "Account number is required")
+    private Long accountNumber;
 
     @NotNull(message = "Amount is required")
     @DecimalMin(value = "0.01", message = "Amount must be greater than zero")

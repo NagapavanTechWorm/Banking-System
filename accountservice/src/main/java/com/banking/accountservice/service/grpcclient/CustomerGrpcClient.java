@@ -1,4 +1,4 @@
-package com.banking.accountservice.grpc;
+package com.banking.accountservice.service.grpcclient;
 
 import com.banking.grpc.customer.CustomerGrpcServiceGrpc;
 import com.banking.grpc.customer.CustomerValidationRequest;

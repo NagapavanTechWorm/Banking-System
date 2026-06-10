@@ -13,5 +13,5 @@ public class AccountResponse {
 
     private AccountType accountType;
 
-    private String accountNumber;
+    private Long accountNumber;
 }

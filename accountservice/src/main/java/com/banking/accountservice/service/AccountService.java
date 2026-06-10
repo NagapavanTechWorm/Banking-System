@@ -6,12 +6,12 @@ import com.banking.accountservice.exception.ResourceNotFoundException;
 import com.banking.accountservice.model.Account;
 import com.banking.accountservice.model.AccountStatus;
 import com.banking.accountservice.repository.AccountRepository;
-import com.banking.accountservice.grpc.CustomerGrpcClient;
+import com.banking.accountservice.service.grpcclient.CustomerGrpcClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Service
 @RequiredArgsConstructor
@@ -48,10 +48,13 @@ public class AccountService {
         return response;
     }
 
-    private String generateAccountNumber() {
-        return UUID.randomUUID()
-                .toString()
-                .replace("-", "")
-                .substring(0, 20);
+    private Long generateAccountNumber() {
+        long accountNumber;
+        do {
+            accountNumber = ThreadLocalRandom.current()
+                    .nextLong(1_000_000_000L, 10_000_000_000L);
+        } while (accountRepository.findByAccountNumber(accountNumber).isPresent());
+
+        return accountNumber;
     }
 }

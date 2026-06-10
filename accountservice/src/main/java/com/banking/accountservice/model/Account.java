@@ -25,8 +25,8 @@ public class Account {
     @Column(nullable = false)
     private Long customerId;
 
-    @Column(nullable = false, unique = true, length = 20)
-    private String accountNumber;
+    @Column(nullable = false, unique = true)
+    private Long accountNumber;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

@@ -20,7 +20,10 @@ public class Transaction {
     private Long transactionId;
 
     @Column(nullable = false)
-    private Long accountId;
+    private Long customerId;
+
+    @Column(nullable = false)
+    private Long accountNumber;
 
     @Column(nullable = false, precision = 15, scale = 2)
     private BigDecimal amount;
