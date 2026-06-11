@@ -1,5 +1,7 @@
 package com.banking.accountservice.service;
 
+import com.banking.accountservice.dto.AccountBalRequest;
+import com.banking.accountservice.dto.AccountBalResponse;
 import com.banking.accountservice.dto.AccountRequest;
 import com.banking.accountservice.dto.AccountResponse;
 import com.banking.accountservice.exception.ResourceNotFoundException;
@@ -44,6 +46,24 @@ public class AccountService {
         response.setCustomerId(saved.getCustomerId());
         response.setAccountType(saved.getAccountType());
         response.setAccountNumber(saved.getAccountNumber());
+
+        return response;
+    }
+
+    public AccountBalResponse getAccountBalance(AccountBalRequest request) {
+
+        Account account = accountRepository
+                .findByAccountNumberAndCustomerId(request.getAccountNumber(),
+                        request.getCustomerId())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Account not found for given account number and customer ID"));
+
+        AccountBalResponse response = new AccountBalResponse();
+        response.setAccountNumber(account.getAccountNumber());
+        response.setCustomerId(account.getCustomerId());
+        response.setAccountType(account.getAccountType());
+        response.setBalance(account.getBalance());
+        response.setId(account.getAccountId());
 
         return response;
     }

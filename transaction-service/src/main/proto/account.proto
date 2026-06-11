@@ -10,6 +10,9 @@ service AccountGrpcService {
   rpc ValidateAccount(AccountValidationRequest)
       returns (AccountValidationResponse);
 
+  rpc UpdateAccount(AccountUpdateRequest)
+        returns (AccountUpdateResponse);
+
 }
 
 message AccountValidationRequest {
@@ -19,4 +22,16 @@ message AccountValidationRequest {
 
 message AccountValidationResponse {
   bool exists = 1;
+}
+
+message AccountUpdateRequest {
+  int64 accountNumber = 1;
+  double amount = 2;
+  string transactionType = 3;
+}
+
+message AccountUpdateResponse {
+  bool success = 1;
+  double updatedBalance = 2;
+  string errorMessage = 3;
 }

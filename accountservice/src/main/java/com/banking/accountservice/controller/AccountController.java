@@ -3,6 +3,8 @@ package com.banking.accountservice.controller;
 import com.banking.accountservice.dto.AccountRequest;
 import com.banking.accountservice.dto.AccountResponse;
 import com.banking.accountservice.dto.ApiResponse;
+import com.banking.accountservice.dto.AccountBalRequest;
+import com.banking.accountservice.dto.AccountBalResponse;
 import com.banking.accountservice.service.AccountService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -36,8 +38,16 @@ public class AccountController {
                                 response));
     }
 
-    @GetMapping("/health")
-    public String healthCheck() {
-        return "Account Service is up and running!";
+    @Operation(summary = "Get account balance", description = "Retrieves the current balance of an account based on account number and customer ID")
+    @PostMapping("/balance")
+    public ResponseEntity<ApiResponse<AccountBalResponse>> getAccountBalance(
+            @Valid @RequestBody AccountBalRequest request) {
+
+        AccountBalResponse response = accountService.getAccountBalance(request);
+
+        return ResponseEntity
+                .ok(ApiResponse.success(
+                        "Account balance retrieved successfully",
+                        response));
     }
 }
