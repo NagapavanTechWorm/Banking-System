@@ -19,11 +19,17 @@ public class Transaction {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long transactionId;
 
-    @Column(nullable = false)
-    private Long customerId;
+    @Column
+    private Long debitorCustomerId;
 
-    @Column(nullable = false)
-    private Long accountNumber;
+    @Column
+    private Long debitorAccountNumber;
+
+    @Column
+    private Long creditorCustomerId;
+
+    @Column
+    private Long creditorAccountNumber;
 
     @Column(nullable = false, precision = 15, scale = 2)
     private BigDecimal amount;

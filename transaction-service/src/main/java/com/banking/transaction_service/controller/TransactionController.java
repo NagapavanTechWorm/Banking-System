@@ -49,6 +49,20 @@ public class TransactionController {
                                                                 response));
         }
 
+        @Operation(summary = "Transfer", description = "transfer funds between two existing customer accounts with the provided details")
+        @PostMapping("/transfer")
+        public ResponseEntity<ApiResponse<TransactionResponse>> TransferTransaction(
+                        @Valid @RequestBody TransactionRequest request) {
+
+                TransactionResponse response = transactionService.transferTransaction(request);
+
+                return ResponseEntity.status(HttpStatus.CREATED)
+                                .body(
+                                                ApiResponse.success(
+                                                                "Transaction created successfully",
+                                                                response));
+        }
+
         @GetMapping("/{id}")
         public ResponseEntity<ApiResponse<TransactionResponse>> getTransactionById(
                         @PathVariable Long id) {

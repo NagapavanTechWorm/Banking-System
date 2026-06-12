@@ -11,8 +11,10 @@ import java.time.LocalDateTime;
 public class TransactionResponse {
 
     private Long transactionId;
-    private Long accountNumber;
-    private Long customerId;
+    private Long debitorCustomerId;
+    private Long debitorAccountNumber;
+    private Long creditorCustomerId;
+    private Long creditorAccountNumber;
     private BigDecimal amount;
     private TransactionType transactionType;
     private TransactionStatus status;

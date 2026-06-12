@@ -11,10 +11,16 @@ import java.math.BigDecimal;
 public class TransactionRequest {
 
     @NotNull(message = "Customer ID is required")
-    private Long customerId;
+    private Long debitorCustomerId;
 
-    @NotNull(message = "Account number is required")
-    private Long accountNumber;
+    @NotNull(message = "Debitor Account number is required")
+    private Long debitorAccountNumber;
+
+    @NotNull(message = "Customer ID is required")
+    private Long creditorCustomerId;
+
+    @NotNull(message = "Creditor Account number is required")
+    private Long creditorAccountNumber;
 
     @NotNull(message = "Amount is required")
     @DecimalMin(value = "0.01", message = "Amount must be greater than zero")

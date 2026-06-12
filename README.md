@@ -162,7 +162,6 @@ docker run -d \
   --name transaction-service-app \
   --network banking-network \
   -p 8082:8082 \
-
   transaction-service
 ```
 

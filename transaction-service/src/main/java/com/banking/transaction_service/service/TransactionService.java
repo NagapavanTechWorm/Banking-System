@@ -4,6 +4,7 @@ import com.banking.transaction_service.dto.TransactionRequest;
 import com.banking.transaction_service.dto.TransactionResponse;
 import com.banking.transaction_service.model.Transaction;
 import com.banking.transaction_service.model.TransactionStatus;
+import com.banking.transaction_service.model.TransactionType;
 import com.banking.transaction_service.repository.TransactionRepository;
 import com.banking.transaction_service.service.grpcclient.AccountGrpcClient;
 import com.banking.grpc.account.AccountUpdateResponse;
@@ -20,8 +21,13 @@ public class TransactionService {
         public TransactionResponse DespositTransaction(
                         TransactionRequest request) {
 
+                if (request.getTransactionType() != TransactionType.DEPOSIT) {
+                        throw new RuntimeException(
+                                        "Transaction type must be DEPOSIT for this endpoint");
+                }
+
                 boolean accountExists = accountGrpcClient.accountExists(
-                                request.getAccountNumber(), request.getCustomerId());
+                                request.getCreditorAccountNumber(), request.getCreditorCustomerId());
 
                 if (!accountExists) {
                         throw new RuntimeException(
@@ -29,7 +35,7 @@ public class TransactionService {
                 }
 
                 AccountUpdateResponse updateResp = accountGrpcClient.updateAccountBalance(
-                                request.getAccountNumber(),
+                                request.getCreditorAccountNumber(),
                                 request.getAmount().doubleValue(),
                                 "DEPOSIT");
 
@@ -41,11 +47,17 @@ public class TransactionService {
 
                 Transaction transaction = new Transaction();
 
-                transaction.setAccountNumber(
-                                request.getAccountNumber());
+                transaction.setCreditorAccountNumber(
+                                request.getCreditorAccountNumber());
 
-                transaction.setCustomerId(
-                                request.getCustomerId());
+                transaction.setCreditorCustomerId(
+                                request.getCreditorCustomerId());
+
+                transaction.setDebitorCustomerId(
+                                null); // For deposit, debitor customer is null
+
+                transaction.setDebitorAccountNumber(
+                                null); // For deposit, debitor account is null
 
                 transaction.setAmount(
                                 request.getAmount());
@@ -67,8 +79,13 @@ public class TransactionService {
         public TransactionResponse WithdrawTransaction(
                         TransactionRequest request) {
 
+                if (request.getTransactionType() != TransactionType.WITHDRAW) {
+                        throw new RuntimeException(
+                                        "Transaction type must be WITHDRAW for this endpoint");
+                }
+
                 boolean accountExists = accountGrpcClient.accountExists(
-                                request.getAccountNumber(), request.getCustomerId());
+                                request.getDebitorAccountNumber(), request.getDebitorCustomerId());
 
                 if (!accountExists) {
                         throw new RuntimeException(
@@ -76,7 +93,7 @@ public class TransactionService {
                 }
 
                 AccountUpdateResponse updateResp = accountGrpcClient.updateAccountBalance(
-                                request.getAccountNumber(),
+                                request.getDebitorAccountNumber(),
                                 request.getAmount().doubleValue(),
                                 "WITHDRAW");
 
@@ -88,11 +105,17 @@ public class TransactionService {
 
                 Transaction transaction = new Transaction();
 
-                transaction.setAccountNumber(
-                                request.getAccountNumber());
+                transaction.setCreditorAccountNumber(
+                                null); // For withdraw, creditor account is null
 
-                transaction.setCustomerId(
-                                request.getCustomerId());
+                transaction.setCreditorCustomerId(
+                                null); // For withdraw, creditor customer is null
+
+                transaction.setDebitorCustomerId(
+                                request.getDebitorCustomerId());
+
+                transaction.setDebitorAccountNumber(
+                                request.getDebitorAccountNumber());
 
                 transaction.setAmount(
                                 request.getAmount());
@@ -107,6 +130,105 @@ public class TransactionService {
                                 TransactionStatus.SUCCESS);
 
                 Transaction saved = transactionRepository.save(transaction);
+
+                return mapToResponse(saved);
+        }
+
+        public TransactionResponse transferTransaction(
+                        TransactionRequest request) {
+
+                if (request.getAmount() == null
+                                || request.getAmount().signum() <= 0) {
+
+                        throw new RuntimeException(
+                                        "Transfer amount must be greater than zero");
+                }
+
+                if (request.getDebitorAccountNumber()
+                                .equals(request.getCreditorAccountNumber())) {
+
+                        throw new RuntimeException(
+                                        "Source and destination accounts cannot be the same");
+                }
+
+                boolean creditorExists = accountGrpcClient.accountExists(
+                                request.getCreditorAccountNumber(),
+                                request.getCreditorCustomerId());
+
+                boolean debitorExists = accountGrpcClient.accountExists(
+                                request.getDebitorAccountNumber(),
+                                request.getDebitorCustomerId());
+
+                if (!creditorExists || !debitorExists) {
+
+                        throw new RuntimeException(
+                                        "One or both accounts do not exist");
+                }
+
+                AccountUpdateResponse withdrawResponse = accountGrpcClient.updateAccountBalance(
+                                request.getDebitorAccountNumber(),
+                                request.getAmount().doubleValue(),
+                                "WITHDRAW");
+
+                if (!withdrawResponse.getSuccess()) {
+
+                        throw new RuntimeException(
+                                        withdrawResponse.getErrorMessage());
+                }
+
+                try {
+
+                        AccountUpdateResponse depositResponse = accountGrpcClient.updateAccountBalance(
+                                        request.getCreditorAccountNumber(),
+                                        request.getAmount().doubleValue(),
+                                        "DEPOSIT");
+
+                        if (!depositResponse.getSuccess()) {
+
+                                throw new RuntimeException(
+                                                depositResponse.getErrorMessage());
+                        }
+
+                } catch (Exception ex) {
+
+                        // Compensation Transaction
+                        accountGrpcClient.updateAccountBalance(
+                                        request.getDebitorAccountNumber(),
+                                        request.getAmount().doubleValue(),
+                                        "DEPOSIT");
+
+                        throw new RuntimeException(
+                                        "Transfer failed. Amount refunded to debitor account");
+                }
+
+                Transaction transaction = new Transaction();
+
+                transaction.setDebitorCustomerId(
+                                request.getDebitorCustomerId());
+
+                transaction.setDebitorAccountNumber(
+                                request.getDebitorAccountNumber());
+
+                transaction.setCreditorCustomerId(
+                                request.getCreditorCustomerId());
+
+                transaction.setCreditorAccountNumber(
+                                request.getCreditorAccountNumber());
+
+                transaction.setAmount(
+                                request.getAmount());
+
+                transaction.setTransactionType(
+                                TransactionType.TRANSFER);
+
+                transaction.setDescription(
+                                request.getDescription());
+
+                transaction.setStatus(
+                                TransactionStatus.SUCCESS);
+
+                Transaction saved = transactionRepository.save(
+                                transaction);
 
                 return mapToResponse(saved);
         }
@@ -129,11 +251,17 @@ public class TransactionService {
                 response.setTransactionId(
                                 transaction.getTransactionId());
 
-                response.setCustomerId(
-                                transaction.getCustomerId());
+                response.setDebitorCustomerId(
+                                transaction.getDebitorCustomerId());
 
-                response.setAccountNumber(
-                                transaction.getAccountNumber());
+                response.setDebitorAccountNumber(
+                                transaction.getDebitorAccountNumber());
+
+                response.setCreditorCustomerId(
+                                transaction.getCreditorCustomerId());
+
+                response.setCreditorAccountNumber(
+                                transaction.getCreditorAccountNumber());
 
                 response.setAmount(
                                 transaction.getAmount());
