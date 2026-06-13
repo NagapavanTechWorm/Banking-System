@@ -81,6 +81,20 @@ services:
     networks:
       - banking-network
 
+  api-gateway:
+    build:
+      context: ./apigateway
+    image: api-gateway
+    container_name: api-gateway-app
+    ports:
+      - "4000:4000"
+    depends_on:
+      - customer-service
+      - account-service
+      - transaction-service
+    networks:
+      - banking-network
+
 networks:
   banking-network:
     driver: bridge

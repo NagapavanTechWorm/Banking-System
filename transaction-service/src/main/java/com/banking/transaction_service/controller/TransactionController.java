@@ -14,7 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/transactions")
+@RequestMapping("/transactions")
 @RequiredArgsConstructor
 @Tag(name = "Transaction API", description = "Endpoints for managing transactions")
 public class TransactionController {
@@ -74,4 +74,5 @@ public class TransactionController {
                                                 "Transaction fetched successfully",
                                                 response));
         }
+
 }
