@@ -46,9 +46,9 @@ services:
       context: ./customerservice
     image: customer-service
     container_name: customer-service-app
-    ports:
-      - "8080:8080"
-      - "9090:9090"
+    # ports:
+    #   - "8080:8080"
+    #   - "9090:9090"
     depends_on:
       - customer-postgres
     networks:
@@ -59,9 +59,9 @@ services:
       context: ./accountservice
     image: account-service
     container_name: account-service-app
-    ports:
-      - "8081:8081"
-      - "9091:9091"
+    # ports:
+    #   - "8081:8081"
+    #   - "9091:9091"
     depends_on:
       - account-postgres
       - customer-service
@@ -73,8 +73,8 @@ services:
       context: ./transaction-service
     image: transaction-service
     container_name: transaction-service-app
-    ports:
-      - "8082:8082"
+    # ports:
+    #   - "8082:8082"
     depends_on:
       - transaction-postgres
       - account-service

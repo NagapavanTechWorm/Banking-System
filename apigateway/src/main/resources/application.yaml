@@ -7,7 +7,8 @@ spring:
       server:
         webflux:
           routes:
-            # APIs
+            # ── API Routes ─────────────────────────────────────────
+
             - id: customer-service
               uri: http://customer-service-app:8080
               predicates:
@@ -29,41 +30,27 @@ spring:
               filters:
                 - StripPrefix=1
 
-            # Swagger
-            - id: customer-service-swagger
+            # ── API Docs JSON ──────────────────────────────────────
+
+            - id: customer-service-api-docs
               uri: http://customer-service-app:8080
               predicates:
-                - Path=/api-docs/customers
+                - Path=/api-docs/customers/**
               filters:
-                - RewritePath=/api-docs/customers, /v3/api-docs
+                - RewritePath=/api-docs/customers, /api-docs
 
-            - id: account-service-swagger
+            - id: account-service-api-docs
               uri: http://account-service-app:8081
               predicates:
-                - Path=/api-docs/accounts
+                - Path=/api-docs/accounts/**
               filters:
-                - RewritePath=/api-docs/accounts, /v3/api-docs
+                - RewritePath=/api-docs/accounts, /api-docs
 
-            - id: transaction-service-swagger
+            - id: transaction-service-api-docs
               uri: http://transaction-service-app:8082
               predicates:
-                - Path=/api-docs/transactions
+                - Path=/api-docs/transactions/**
               filters:
-                - RewritePath=/api-docs/transactions, /v3/api-docs
-
+                - RewritePath=/api-docs/transactions, /api-docs
 server:
   port: 4000
-
-logging:
-  level:
-    org.springframework.cloud.gateway: DEBUG
-    reactor.netty: DEBUG
-
-management:
-  endpoint:
-    gateway:
-      access: unrestricted
-  endpoints:
-    web:
-      exposure:
-        include: gateway,health
