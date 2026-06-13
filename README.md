@@ -152,6 +152,7 @@ docker run -d \
   --name account-service-app \
   --network banking-network \
   -p 8081:8081 \
+  -p 9091:9091 \
   account-service
 ```
 
@@ -204,6 +205,102 @@ mvn clean package -DskipTests
 docker build -t <service-name> .
 docker rm -f <container-name>
 docker run -d --name <container-name> --network banking-network -p <host-port>:<container-port> <service-name>
+```
+
+---
+
+# Docker Compose
+
+The project includes a `docker-compose.yml` file that can start all services and databases with a single command.
+
+## Build and Start Entire System
+
+```bash
+docker compose up --build -d
+```
+
+## Start Existing Containers
+
+```bash
+docker compose start
+```
+
+## Stop All Containers
+
+```bash
+docker compose stop
+```
+
+## Restart All Containers
+
+```bash
+docker compose restart
+```
+
+## View Running Containers
+
+```bash
+docker compose ps
+```
+
+## View Logs
+
+```bash
+docker compose logs -f
+```
+
+### View Logs for a Specific Service
+
+```bash
+docker compose logs -f customer-service
+docker compose logs -f account-service
+docker compose logs -f transaction-service
+```
+
+## Rebuild a Single Service
+
+### Customer Service
+
+```bash
+docker compose up --build -d customer-service
+```
+
+### Account Service
+
+```bash
+docker compose up --build -d account-service
+```
+
+### Transaction Service
+
+```bash
+docker compose up --build -d transaction-service
+```
+
+## Rebuild Entire System
+
+```bash
+docker compose up --build -d
+```
+
+## Stop and Remove Containers
+
+```bash
+docker compose down
+```
+
+## Stop and Remove Containers Including Volumes
+
+```bash
+docker compose down -v
+```
+
+> Warning: This command removes PostgreSQL volumes and permanently deletes database data.
+
+## Validate Docker Compose Configuration
+
+```bash
+docker compose config
 ```
 
 ---

@@ -1,0 +1,91 @@
+services:
+  customer-postgres:
+    image: postgres:15
+    container_name: customer-postgres
+    environment:
+      POSTGRES_DB: customerdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+    ports:
+      - "5433:5432"
+    volumes:
+      - customer-postgres-data:/var/lib/postgresql/data
+    networks:
+      - banking-network
+
+  account-postgres:
+    image: postgres:15
+    container_name: account-postgres
+    environment:
+      POSTGRES_DB: accountdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+    ports:
+      - "5434:5432"
+    volumes:
+      - account-postgres-data:/var/lib/postgresql/data
+    networks:
+      - banking-network
+
+  transaction-postgres:
+    image: postgres:15
+    container_name: transaction-postgres
+    environment:
+      POSTGRES_DB: transactiondb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+    ports:
+      - "5435:5432"
+    volumes:
+      - transaction-postgres-data:/var/lib/postgresql/data
+    networks:
+      - banking-network
+
+  customer-service:
+    build:
+      context: ./customerservice
+    image: customer-service
+    container_name: customer-service-app
+    ports:
+      - "8080:8080"
+      - "9090:9090"
+    depends_on:
+      - customer-postgres
+    networks:
+      - banking-network
+
+  account-service:
+    build:
+      context: ./accountservice
+    image: account-service
+    container_name: account-service-app
+    ports:
+      - "8081:8081"
+      - "9091:9091"
+    depends_on:
+      - account-postgres
+      - customer-service
+    networks:
+      - banking-network
+
+  transaction-service:
+    build:
+      context: ./transaction-service
+    image: transaction-service
+    container_name: transaction-service-app
+    ports:
+      - "8082:8082"
+    depends_on:
+      - transaction-postgres
+      - account-service
+    networks:
+      - banking-network
+
+networks:
+  banking-network:
+    driver: bridge
+
+volumes:
+  customer-postgres-data:
+  account-postgres-data:
+  transaction-postgres-data:

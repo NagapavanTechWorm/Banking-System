@@ -11,23 +11,23 @@ import net.devh.boot.grpc.server.service.GrpcService;
 @GrpcService
 @RequiredArgsConstructor
 public class CustomerGrpcServiceImpl
-        extends CustomerGrpcServiceGrpc.CustomerGrpcServiceImplBase {
+                extends CustomerGrpcServiceGrpc.CustomerGrpcServiceImplBase {
 
-    private final CustomerRepository customerRepository;
+        private final CustomerRepository customerRepository;
 
-    @Override
-    public void validateCustomer(
-            CustomerValidationRequest request,
-            StreamObserver<CustomerValidationResponse> responseObserver) {
+        @Override
+        public void validateCustomer(
+                        CustomerValidationRequest request,
+                        StreamObserver<CustomerValidationResponse> responseObserver) {
 
-        boolean exists = customerRepository.existsById(
-                request.getCustomerId());
+                boolean exists = customerRepository.existsById(
+                                request.getCustomerId());
 
-        CustomerValidationResponse response = CustomerValidationResponse.newBuilder()
-                .setExists(exists)
-                .build();
+                CustomerValidationResponse response = CustomerValidationResponse.newBuilder()
+                                .setExists(exists)
+                                .build();
 
-        responseObserver.onNext(response);
-        responseObserver.onCompleted();
-    }
+                responseObserver.onNext(response);
+                responseObserver.onCompleted();
+        }
 }
