@@ -41,6 +41,20 @@ services:
     networks:
       - banking-network
 
+  auth-postgres:
+    image: postgres:15
+    container_name: auth-postgres
+    environment:
+      POSTGRES_DB: authdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+    ports:
+      - "5436:5432"
+    volumes:
+      - auth-postgres-data:/var/lib/postgresql/data
+    networks:
+      - banking-network
+
   customer-service:
     build:
       context: ./customerservice
@@ -81,6 +95,21 @@ services:
     networks:
       - banking-network
 
+  auth-service:
+    build:
+      context: ./auth-service
+    image: auth-service
+    container_name: auth-service-app
+    ports:
+      - "8083:8083"
+    depends_on:
+      - auth-postgres
+      - customer-service
+      - account-service
+      - transaction-service
+    networks:
+      - banking-network
+
   api-gateway:
     build:
       context: ./apigateway
@@ -103,3 +132,4 @@ volumes:
   customer-postgres-data:
   account-postgres-data:
   transaction-postgres-data:
+  auth-postgres-data:
