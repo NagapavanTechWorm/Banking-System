@@ -9,12 +9,20 @@ spring:
           routes:
             # ── API Routes ─────────────────────────────────────────
 
+            - id: auth-service
+              uri: http://auth-service-app:8083
+              predicates:
+                - Path=/auth/**
+              filters:
+                - StripPrefix=1
+
             - id: customer-service
               uri: http://customer-service-app:8080
               predicates:
                 - Path=/api/customers/**
               filters:
                 - StripPrefix=1
+                - JwtValidation
 
             - id: account-service
               uri: http://account-service-app:8081
@@ -22,6 +30,7 @@ spring:
                 - Path=/api/accounts/**
               filters:
                 - StripPrefix=1
+                - JwtValidation
 
             - id: transaction-service
               uri: http://transaction-service-app:8082
@@ -29,6 +38,7 @@ spring:
                 - Path=/api/transactions/**
               filters:
                 - StripPrefix=1
+                - JwtValidation
 
             # ── API Docs JSON ──────────────────────────────────────
 

@@ -100,8 +100,8 @@ services:
       context: ./auth-service
     image: auth-service
     container_name: auth-service-app
-    ports:
-      - "8083:8083"
+    # ports:
+    #   - "8083:8083"
     depends_on:
       - auth-postgres
       - customer-service
@@ -115,6 +115,8 @@ services:
       context: ./apigateway
     image: api-gateway
     container_name: api-gateway-app
+    environment:
+      - AUTH_SERVICE_URL=http://auth-service-app:8083
     ports:
       - "4000:4000"
     depends_on:
