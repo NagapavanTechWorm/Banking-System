@@ -1,31 +1,110 @@
 # 🏦 Banking System
 
-A microservices-based Banking System built with Spring Boot, PostgreSQL, Docker, and gRPC.
+A microservices-based Banking System built with Spring Boot, PostgreSQL, Docker, gRPC, JWT Authentication, and API Gateway.
 
-## Architecture
+---
 
-| Service             | Application Port | Database Port (Host) | Database Port (Container) |
-| ------------------- | ---------------- | -------------------- | ------------------------- |
-| Customer Service    | 8080             | 5433                 | 5432                      |
-| Account Service     | 8081             | 5434                 | 5432                      |
-| Transaction Service | 8082             | 5435                 | 5432                      |
+# Architecture
 
-### Service Communication
+## Services
+
+| Service             | Application Port | gRPC Port | Database Port (Host) |
+| ------------------- | ---------------- | --------- | -------------------- |
+| Customer Service    | 8080             | 9090      | 5433                 |
+| Account Service     | 8081             | 9091      | 5434                 |
+| Transaction Service | 8082             | -         | 5435                 |
+| Auth Service        | 8083             | -         | 5436                 |
+| API Gateway         | 4000             | -         | -                    |
+
+---
+
+## Microservice Communication
 
 ```text
-Customer Service (gRPC Server : 9090)
-            │
-            │ gRPC
-            ▼
-     Account Service
-            │ gRPC
-            ▼
-   Transaction Service
+Client
+   │
+   ▼
+API Gateway (4000)
+   │
+   ├── Auth Service (8083)
+   │
+   ├── Customer Service (8080)
+   │         ▲
+   │         │ gRPC : 9090
+   │         │
+   ├── Account Service (8081)
+   │         ▲
+   │         │ gRPC : 9091
+   │         │
+   └── Transaction Service (8082)
 ```
 
-- Customer Service exposes a gRPC endpoint for customer validation.
-- Account Service validates customer existence before account creation.
-- Each service owns its own PostgreSQL database.
+### gRPC Communication Flow
+
+```text
+Customer Service
+      ▲
+      │ Customer Validation
+      │ (gRPC : 9090)
+      │
+Account Service
+      ▲
+      │ Account Validation
+      │ (gRPC : 9091)
+      │
+Transaction Service
+```
+
+### Service Responsibilities
+
+#### Customer Service
+
+- Manages customer information.
+- Owns the Customer Database.
+- Exposes a gRPC server on port `9090`.
+- Provides customer validation to Account Service.
+
+#### Account Service
+
+- Manages bank accounts.
+- Owns the Account Database.
+- Acts as a **gRPC Client** when communicating with Customer Service.
+- Validates customer existence before account creation.
+- Exposes a **gRPC Server** on port `9091`.
+- Provides account validation to Transaction Service.
+
+#### Transaction Service
+
+- Manages deposits, withdrawals, and fund transfers.
+- Owns the Transaction Database.
+- Acts as a **gRPC Client** when communicating with Account Service.
+- Validates account existence before processing transactions.
+
+#### Auth Service
+
+- Handles authentication and authorization.
+- Generates and validates JWT tokens.
+
+#### API Gateway
+
+- Single entry point for all client requests.
+- Routes requests to backend services.
+- Applies JWT validation before forwarding requests.
+
+---
+
+# Technology Stack
+
+- Java 21
+- Spring Boot 3
+- Spring Data JPA
+- Spring Cloud Gateway
+- PostgreSQL
+- gRPC
+- JWT Authentication
+- Docker
+- Docker Compose
+- Maven
 
 ---
 
@@ -34,75 +113,46 @@ Customer Service (gRPC Server : 9090)
 - Java 21+
 - Maven 3.9+
 - Docker
-- Docker Desktop (Windows/Mac) or Docker Engine (Linux)
+- Docker Compose
 
 ---
 
-# Infrastructure Setup
+# Project Structure
 
-## Create Docker Network
-
-```bash
-docker network create banking-network
-```
-
----
-
-# Database Setup
-
-## Customer Database
-
-```bash
-docker volume create customer-postgres-data
-
-docker run -d \
-  --name customer-postgres \
-  --network banking-network \
-  -v customer-postgres-data:/var/lib/postgresql/data \
-  -e POSTGRES_DB=customerdb \
-  -e POSTGRES_USER=postgres \
-  -e POSTGRES_PASSWORD=postgres123 \
-  -p 5433:5432 \
-  postgres:15
-```
-
-## Account Database
-
-```bash
-docker volume create account-postgres-data
-
-docker run -d \
-  --name account-postgres \
-  --network banking-network \
-  -v account-postgres-data:/var/lib/postgresql/data \
-  -e POSTGRES_DB=accountdb \
-  -e POSTGRES_USER=postgres \
-  -e POSTGRES_PASSWORD=postgres123 \
-  -p 5434:5432 \
-  postgres:15
-```
-
-## Transaction Database
-
-```bash
-docker volume create transaction-postgres-data
-
-docker run -d \
-  --name transaction-postgres \
-  --network banking-network \
-  -v transaction-postgres-data:/var/lib/postgresql/data \
-  -e POSTGRES_DB=transactiondb \
-  -e POSTGRES_USER=postgres \
-  -e POSTGRES_PASSWORD=postgres123 \
-  -p 5435:5432 \
-  postgres:15
+```text
+banking-system/
+│
+├── customer-service
+├── account-service
+├── transaction-service
+├── auth-service
+├── api-gateway
+│
+└── docker-compose.yml
 ```
 
 ---
 
-# Build Services
+# Database Architecture
 
-Run the following command from each service directory:
+Each service owns its own database.
+
+| Service             | Database      |
+| ------------------- | ------------- |
+| Customer Service    | customerdb    |
+| Account Service     | accountdb     |
+| Transaction Service | transactiondb |
+| Auth Service        | authdb        |
+
+This follows the Database-per-Service pattern.
+
+---
+
+# Running the Application
+
+## Build All Services
+
+Run from each service directory:
 
 ```bash
 mvn clean package -DskipTests
@@ -110,110 +160,219 @@ mvn clean package -DskipTests
 
 ---
 
-# Build Docker Images
-
-## Customer Service
+## Start Entire System
 
 ```bash
-docker build -t customer-service .
-```
-
-## Account Service
-
-```bash
-docker build -t account-service .
-```
-
-## Transaction Service
-
-```bash
-docker build -t transaction-service .
+docker compose up --build -d
 ```
 
 ---
 
-# Run Services
-
-## Customer Service
+## Verify Running Containers
 
 ```bash
-docker run -d \
-  --name customer-service-app \
-  --network banking-network \
-  -p 8080:8080 \
-  -p 9090:9090 \
-  customer-service
+docker compose ps
 ```
 
-## Account Service
+Expected Containers:
 
-```bash
-docker run -d \
-  --name account-service-app \
-  --network banking-network \
-  -p 8081:8081 \
-  -p 9091:9091 \
-  account-service
-```
+```text
+customer-postgres
+account-postgres
+transaction-postgres
+auth-postgres
 
-## Transaction Service
+customer-service-app
+account-service-app
+transaction-service-app
+auth-service-app
 
-```bash
-docker run -d \
-  --name transaction-service-app \
-  --network banking-network \
-  -p 8082:8082 \
-  transaction-service
+api-gateway-app
 ```
 
 ---
 
-# Verification
+# API Gateway
 
-Verify all containers are running:
+Base URL:
 
-```bash
-docker ps
+```text
+http://localhost:4000
 ```
 
-### Service Endpoints
-
-| Service                 | URL                   |
-| ----------------------- | --------------------- |
-| Customer Service-app    | http://localhost:8080 |
-| Account Service-app     | http://localhost:8081 |
-| Transaction Service-app | http://localhost:8082 |
+All external requests must go through API Gateway.
 
 ---
 
-# Viewing Logs
+# Authentication APIs
 
-```bash
-docker logs -f customer-service-app
-docker logs -f account-service-app
-docker logs -f transaction-service-app
+## Login
+
+```http
+POST /auth/login
 ```
 
----
+## Validate
 
-# Development Workflow
+```http
+GET /auth/validate
+```
 
-After making code changes:
+Response:
 
-```bash
-mvn clean package -DskipTests
-docker build -t <service-name> .
-docker rm -f <container-name>
-docker run -d --name <container-name> --network banking-network -p <host-port>:<container-port> <service-name>
+```json
+{
+  "token": "jwt-token"
+}
 ```
 
 ---
 
-# Docker Compose
+# Customer APIs
 
-The project includes a `docker-compose.yml` file that can start all services and databases with a single command.
+```http
+GET    /api/customers
+GET    /api/customers/{id}
+POST   /api/customers
+PUT    /api/customers/{id}
+DELETE /api/customers/{id}
+```
 
-## Build and Start Entire System
+Authorization Header:
+
+```http
+Authorization: Bearer <JWT_TOKEN>
+```
+
+---
+
+# Account APIs
+
+```http
+POST /api/accounts
+POST /api/accounts/balance
+```
+
+### Account Creation Flow
+
+```text
+Create Account
+      │
+      ▼
+Account Service
+      │
+      ▼
+gRPC Call
+      │
+      ▼
+Customer Service
+      │
+      ▼
+Validate Customer
+      │
+      ▼
+Create Account
+```
+
+Authorization Header:
+
+```http
+Authorization: Bearer <JWT_TOKEN>
+```
+
+---
+
+# Transaction APIs
+
+```http
+GET  /api/transactions/{id}
+POST /api/transactions/deposit
+POST /api/transactions/withdraw
+POST /api/transactions/transfer
+```
+
+### Transaction Processing Flow
+
+```text
+Transaction Request
+        │
+        ▼
+Transaction Service
+        │
+        ▼
+gRPC Call
+        │
+        ▼
+Account Service
+        │
+        ▼
+Validate Account
+        │
+        ▼
+Process Transaction
+```
+
+Authorization Header:
+
+```http
+Authorization: Bearer <JWT_TOKEN>
+```
+
+---
+
+# JWT Authentication Flow
+
+```text
+Client
+   │
+   ▼
+Login Request
+   │
+   ▼
+Auth Service
+   │
+   ▼
+JWT Generated
+   │
+   ▼
+Client Stores Token
+   │
+   ▼
+API Gateway
+   │
+   ▼
+Token Validation
+   │
+   ▼
+Target Service
+```
+
+---
+
+# API Gateway Routes
+
+| Route                  | Destination         |
+| ---------------------- | ------------------- |
+| /auth/\*\*             | Auth Service        |
+| /api/customers/\*\*    | Customer Service    |
+| /api/accounts/\*\*     | Account Service     |
+| /api/transactions/\*\* | Transaction Service |
+
+---
+
+# Service-to-Service Communication
+
+| Source Service      | Destination Service | Protocol |
+| ------------------- | ------------------- | -------- |
+| Account Service     | Customer Service    | gRPC     |
+| Transaction Service | Account Service     | gRPC     |
+| API Gateway         | All Services        | HTTP     |
+
+---
+
+# Docker Commands
+
+## Build and Start
 
 ```bash
 docker compose up --build -d
@@ -225,13 +384,13 @@ docker compose up --build -d
 docker compose start
 ```
 
-## Stop All Containers
+## Stop Containers
 
 ```bash
 docker compose stop
 ```
 
-## Restart All Containers
+## Restart Containers
 
 ```bash
 docker compose restart
@@ -249,80 +408,68 @@ docker compose ps
 docker compose logs -f
 ```
 
-### View Logs for a Specific Service
+### Specific Service Logs
 
 ```bash
 docker compose logs -f customer-service
 docker compose logs -f account-service
 docker compose logs -f transaction-service
+docker compose logs -f auth-service
+docker compose logs -f api-gateway
 ```
 
-## Rebuild a Single Service
-
-### Customer Service
-
-```bash
-docker compose up --build -d customer-service
-```
-
-### Account Service
-
-```bash
-docker compose up --build -d account-service
-```
-
-### Transaction Service
-
-```bash
-docker compose up --build -d transaction-service
-```
-
-## Rebuild Entire System
-
-```bash
-docker compose up --build -d
-```
-
-## Stop and Remove Containers
+## Remove Containers
 
 ```bash
 docker compose down
 ```
 
-## Stop and Remove Containers Including Volumes
+## Remove Containers and Volumes
 
 ```bash
 docker compose down -v
 ```
 
-> Warning: This command removes PostgreSQL volumes and permanently deletes database data.
-
-## Validate Docker Compose Configuration
-
-```bash
-docker compose config
-```
+> Warning: This command permanently deletes all PostgreSQL data.
 
 ---
 
-# Technology Stack
+# Development Workflow
 
-- Java 21
-- Spring Boot
-- Spring Data JPA
-- PostgreSQL
-- gRPC
-- Docker
-- Maven
+After code changes:
+
+```bash
+mvn clean package -DskipTests
+docker compose up --build -d
+```
+
+Rebuild a specific service:
+
+```bash
+docker compose up --build -d customer-service
+docker compose up --build -d account-service
+docker compose up --build -d transaction-service
+docker compose up --build -d auth-service
+docker compose up --build -d api-gateway
+```
 
 ---
 
 # Future Enhancements
 
-- API Gateway
-- Service Discovery (Eureka)
-- Centralized Configuration
-- Distributed Tracing
-- Kafka Integration
-- JWT Authentication & Authorization
-- CI/CD Pipeline
+- Service Discovery using Eureka
+- Centralized Configuration Server
+- Distributed Tracing (Zipkin / OpenTelemetry)
+- Kafka Event Streaming
+- Resilience4j Circuit Breakers
+- Prometheus Monitoring
+- Grafana Dashboards
+- CI/CD Pipeline using GitHub Actions
+- Kubernetes Deployment
+- Role-Based Access Control (RBAC)
+
+---
+
+# Author
+
+Banking System — A production-style microservices architecture demonstrating Spring Boot, PostgreSQL, Docker, gRPC, JWT Authentication, and API Gateway integration.
