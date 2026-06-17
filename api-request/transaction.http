@@ -1,0 +1,62 @@
+@baseUrl = http://localhost:4000
+
+### Login
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "testuser@test.com",
+  "password": "password123"
+}
+
+@TOKEN = {{login.response.body.token}}
+
+### Deposit
+POST {{baseUrl}}/api/transactions/deposit
+Content-Type: application/json
+Authorization: Bearer {{TOKEN}}
+
+{
+  "debitorCustomerId": 0,
+  "debitorAccountNumber": 0,
+  "creditorCustomerId": 3,
+  "creditorAccountNumber": 6640081199,
+  "amount": 100.50,
+  "transactionType": "DEPOSIT",
+  "description": "Initial deposit"
+}
+
+### Withdraw
+POST {{baseUrl}}/api/transactions/withdraw
+Content-Type: application/json
+Authorization: Bearer {{TOKEN}}
+
+{
+  "debitorCustomerId": 3,
+  "debitorAccountNumber": 6640081199,
+  "creditorCustomerId": 0,
+  "creditorAccountNumber": 0,
+  "amount": 25.00,
+  "transactionType": "WITHDRAW",
+  "description": "ATM withdrawal"
+}
+
+### Transfer
+POST {{baseUrl}}/api/transactions/transfer
+Content-Type: application/json
+Authorization: Bearer {{TOKEN}}
+
+{
+  "debitorCustomerId": 3,
+  "debitorAccountNumber": 6640081199,
+  "creditorCustomerId": 4,
+  "creditorAccountNumber": 6390831299,
+  "amount": 50.00,
+  "transactionType": "TRANSFER",
+  "description": "Transfer to savings"
+}
+
+### Get Transaction By ID
+GET {{baseUrl}}/api/transactions/1
+Authorization: Bearer {{TOKEN}}

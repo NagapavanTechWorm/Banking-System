@@ -1,0 +1,51 @@
+@baseUrl = http://localhost:4000
+
+### Login
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "testuser@test.com",
+  "password": "password123"
+}
+
+@TOKEN = {{login.response.body.token}}
+
+### Create Customer
+POST {{baseUrl}}/api/customers
+Content-Type: application/json
+Authorization: Bearer {{TOKEN}}
+
+{
+  "firstName": "Pavan",
+  "lastName": "Doe",
+  "email": "pavan.doe@example.com",
+  "phoneNumber": "7877778789",
+  "governmentId": "GOV7676120456"
+}
+
+### Get Customer By ID
+GET {{baseUrl}}/api/customers/2
+Authorization: Bearer {{TOKEN}}
+
+### List Customers
+GET {{baseUrl}}/api/customers
+Authorization: Bearer {{TOKEN}}
+
+### Update Customer
+PUT {{baseUrl}}/api/customers/2
+Content-Type: application/json
+Authorization: Bearer {{TOKEN}}
+
+{
+  "firstName": "Jane",
+  "lastName": "Doe",
+  "email": "jane.doe@example.com",
+  "phoneNumber": "9808989898",
+  "governmentId": "GOV1234568787"
+}
+
+### Delete Customer
+DELETE {{baseUrl}}/api/customers/2
+Authorization: Bearer {{TOKEN}}
